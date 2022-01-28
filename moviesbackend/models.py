@@ -38,13 +38,13 @@ class WatchLater(models.Model):
 
 #Ratings may be given to a movie by a certain user
 class Rating(models.Model):
-    class GivenRate(models.IntegerChoices):
+    class GivenRating(models.IntegerChoices):
         HORRIBLE = 1
         BAD = 2
         ACCEPTABLE = 3
         GOOD = 4
         EXCELLENT = 5
-    rate = models.IntegerField(choices=GivenRate.choices)
+    rate = models.IntegerField(choices=GivenRating.choices)
     author = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     #if an author gets deleted, the ratings she/he gave will still remain
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
