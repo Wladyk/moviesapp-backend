@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
+from django.db.models import Avg
 class UserViewset(viewsets.ModelViewSet):
     #permission_classes = [IsAuthenticated]
     #authentication_classes = (TokenAuthentication,)
@@ -20,6 +20,9 @@ class MovieViewset(viewsets.ModelViewSet):
     serializer_class = serializers.MovieSerializer
     queryset = Movie.objects.all()
 
+    def get_queryset(self):
+
+        return Movie.objects.all().annotate(_averageRating=Avg('ratings__rating')) 
     def create(self, request):
         p_title = request.data.get('title')
         p_plot = request.data.get('plot') 
@@ -37,6 +40,22 @@ class MovieViewset(viewsets.ModelViewSet):
 class RatingViewset(viewsets.ModelViewSet):
     serializer_class = serializers.RatingSerializer
     queryset = Rating.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = (TokenAuthentication,)
+    def create(self, request):
+        p_rating = request.data.get('rating')
+        userId = request.user.id
+        p_author = User.objects.filter(id=userId).first()
+        movieId = request.data.get('movieId')
+        p_movie = Movie.objects.filter(id=movieId).first()
+        p_movie.rating = p_movie.rating + p_rating
+        p_movie.save()
+        p_message = request.data.get('message')
+        newRating = Rating(rating = p_rating, author = p_author, movie = p_movie,
+        message = p_message)
+        newRating.save()
+        serialized = self.get_serializer(newRating)
+        return Response(serialized.data)
 
 class WatchLaterViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

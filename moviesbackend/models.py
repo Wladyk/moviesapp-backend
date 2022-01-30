@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser
 import datetime
+from django.db.models import Avg, Aggregate
 
 #The Genre model will be used to provide a customizable list of gendres for each movie
 class Genre(models.Model):
@@ -16,7 +17,11 @@ class Movie(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.RESTRICT) #we cannot destroy genres
     #id there're still movies assigned to them
     plot = models.TextField(default="No plot")
-    averageRating = models.IntegerField(default=0)
+    @property
+    def averageRating(self):
+        if hasattr(self, '_averageRating'):
+            return self._averageRating
+        return self.ratings.aggregate(Avg('rating'))
     def __str__(self):
         return str(self.id) + "-" + self.title 
 
@@ -44,10 +49,10 @@ class Rating(models.Model):
         ACCEPTABLE = 3
         GOOD = 4
         EXCELLENT = 5
-    rate = models.IntegerField(choices=GivenRating.choices)
+    rating = models.IntegerField(choices=GivenRating.choices)
     author = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     #if an author gets deleted, the ratings she/he gave will still remain
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="ratings")
     #deleting a movie will also delete all the ratings associated to it
     message = models.TextField(default="No comments")
     date = models.DateTimeField(default=now)
