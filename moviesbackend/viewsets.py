@@ -39,8 +39,17 @@ class MovieViewset(viewsets.ModelViewSet):
 class RatingViewset(viewsets.ModelViewSet):
     serializer_class = serializers.RatingSerializer
     queryset = Rating.objects.all()
-    permission_classes = [IsAuthenticated]
     authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    # Standard request initializer has been overwritten to allow for different perms for each action
+    def initialize_request(self, request, *args, **kwargs):
+        self.action = self.action_map.get(request.method.lower())
+        return super().initialize_request(request, *args, **kwargs)
+    def get_authenticators(self):
+        #The "list" action is unprotected, so any user can see ratings for a given movie
+        if self.action == 'list':
+            return []
+        return super().get_authenticators()
     def create(self, request):
         p_rating = request.data.get('rating')
         userId = request.user.id
