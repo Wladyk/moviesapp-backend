@@ -8,6 +8,7 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = "__all__"
+        
 class MovieSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(read_only=True)
     averageRating = serializers.SerializerMethodField()

@@ -19,7 +19,6 @@ class GenreViewset(viewsets.ModelViewSet):
 class MovieViewset(viewsets.ModelViewSet):
     serializer_class = serializers.MovieSerializer
     queryset = Movie.objects.all()
-
     def get_queryset(self):
         return Movie.objects.all().annotate(_averageRating=Avg('ratings__rating')) 
     def create(self, request):
@@ -40,14 +39,13 @@ class RatingViewset(viewsets.ModelViewSet):
     serializer_class = serializers.RatingSerializer
     queryset = Rating.objects.all()
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IsAuthenticated]
     # Standard request initializer has been overwritten to allow for different perms for each action
     def initialize_request(self, request, *args, **kwargs):
         self.action = self.action_map.get(request.method.lower())
         return super().initialize_request(request, *args, **kwargs)
     def get_authenticators(self):
         #The "list" action is unprotected, so any user can see ratings for a given movie
-        if self.action == 'list':
+        if self.action == 'GetByMovie':
             return []
         return super().get_authenticators()
     def create(self, request):
@@ -62,6 +60,15 @@ class RatingViewset(viewsets.ModelViewSet):
         newRating.save()
         serialized = self.get_serializer(newRating)
         return Response(serialized.data)
+    @action(detail=True, methods=['GET'], name='GetByMovie')
+    def getByMovie(self, request, pk=None):
+        #p_movie = request.data.get('movieId')
+        #print(p_movie)
+        p_movie = Movie.objects.filter(id=pk).first()
+        ratingList = Rating.objects.filter(movie=p_movie)
+        serialized = self.get_serializer(ratingList, many=True)
+        return Response(serialized.data)
+    
 
 class WatchLaterViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
