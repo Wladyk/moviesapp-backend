@@ -2,7 +2,7 @@
 
 # Back-end technologies used
 
-Django, DRF, djoser, PgSQL, djangocorsheaders and whitenoise.
+Django, DRF, djoser, PgSQL, djangocorsheaders and whitenoise, pytyon-decouple.
 
 # Note
 
@@ -29,5 +29,7 @@ Navigate to the dir where manage.py resides and run:
 "manage.py makemigrations"
 "manage.py migrate"
 "manage.py createsuperuser"
+Finally, a ".env" file must be created inside the same directory that holds "setting.py" file. The ".env" file should contain SECRET_KEY and DB authorization parameters.
+
 
 Enjoy :)
