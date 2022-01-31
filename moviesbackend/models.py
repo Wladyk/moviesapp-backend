@@ -1,8 +1,8 @@
 from django.db import models 
-from django.utils.timezone import now
-from django.contrib.auth.models import AbstractUser
 import datetime
-from django.db.models import Avg, Aggregate
+from datetime import datetime
+from django.contrib.auth.models import AbstractUser
+from django.db.models import Avg
 
 #The Genre model will be used to provide a customizable list of gendres for each movie
 class Genre(models.Model):
@@ -13,7 +13,7 @@ class Genre(models.Model):
 
 class Movie(models.Model):
     title = models.CharField(max_length=200, default="No title")
-    releaseDate = models.DateField(default=now)
+    releaseDate = models.DateField(default=datetime.now().strftime("%Y-%m-%d"))
     genre = models.ForeignKey(Genre, on_delete=models.RESTRICT) #we cannot destroy genres
     #id there're still movies assigned to them
     plot = models.TextField(default="No plot")
@@ -37,9 +37,11 @@ class User(AbstractUser):
 class WatchLater(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    dateSet = models.DateTimeField(default=now)
+    dateSet = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return str(self.id)+"-"+self.user.username+"-"+self.movie.title
+    class Meta:
+        unique_together = ('user','movie') #So a same user cannot put the movie in his watch later twice
 
 #Ratings may be given to a movie by a certain user
 class Rating(models.Model):
@@ -55,6 +57,6 @@ class Rating(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="ratings")
     #deleting a movie will also delete all the ratings associated to it
     message = models.TextField(default="No comments")
-    date = models.DateTimeField(default=now)
+    date = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return "Rating ID: " + str(self.id)

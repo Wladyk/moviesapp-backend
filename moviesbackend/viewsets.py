@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from moviesbackend.models import *
 from . import serializers
 from rest_framework.permissions import IsAuthenticated
@@ -21,7 +21,6 @@ class MovieViewset(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
 
     def get_queryset(self):
-
         return Movie.objects.all().annotate(_averageRating=Avg('ratings__rating')) 
     def create(self, request):
         p_title = request.data.get('title')
@@ -48,8 +47,6 @@ class RatingViewset(viewsets.ModelViewSet):
         p_author = User.objects.filter(id=userId).first()
         movieId = request.data.get('movieId')
         p_movie = Movie.objects.filter(id=movieId).first()
-        p_movie.rating = p_movie.rating + p_rating
-        p_movie.save()
         p_message = request.data.get('message')
         newRating = Rating(rating = p_rating, author = p_author, movie = p_movie,
         message = p_message)
@@ -63,19 +60,22 @@ class WatchLaterViewset(viewsets.ModelViewSet):
     serializer_class = serializers.WatchLaterSerializer
     queryset = WatchLater.objects.all()
     def create(self, request):
-        userId = request.data.get('userId')
+        userId = request.user.id
         p_user = User.objects.filter(id=userId).first()
         movieId = request.data.get('movieId')
         p_movie = Movie.objects.filter(id=movieId).first()
-        p_dateSet = request.data.get('dateSet')
-        newWatchLater = WatchLater(user = p_user, movie = p_movie, dateSet = p_dateSet)
+        #p_dateSet = request.data.get('dateSet')
+        newWatchLater = WatchLater(user = p_user, movie = p_movie)
         newWatchLater.save()
         serialized = self.get_serializer(newWatchLater)
         return Response(serialized.data)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        p_user = request.user
+        self.perform_destroy(instance)
+        return Response(None)
     @action(detail=False, methods=['GET'], name='GetByUser')
     def getByUser(self, request):
-        #userId = request.data.get('userId')
-        #p_user = User.objects.filter(id=userId).first()
         p_user = request.user
         movieList = WatchLater.objects.filter(user=p_user)
         serialized = self.get_serializer(movieList, many=True)
