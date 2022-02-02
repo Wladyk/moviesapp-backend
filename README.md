@@ -7,7 +7,7 @@ Django, DRF, djoser, PgSQL, djangocorsheaders and whitenoise, pytyon-decouple.
 # Note
 
 This app is designed for elementary development stage only. Several issues would be addressed if the app were to enter into prod stage. 
-Among them, user login persistency. All important tokens have been stored in volatile front end state (Redux). This is highly secure, but the user will lose login after closing the page. In prod, we would likely work with HTTP-only cookies to deal with such data.    
+Among them, user login persistency. All important tokens have been stored in volatile front end state (Redux). This is highly secure, but the user will lose login after closing the page.
 Corsheaders are set to ALLOW_ALL. That would be changed in a real life app.
 
 # How to run (Linux environment)
